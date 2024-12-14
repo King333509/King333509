@@ -3,115 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto-Spiel</title>
+    <title>Hauptstadt-Quiz</title>
     <style>
         body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #333;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
         }
-        canvas {
-            display: block;
-            margin: 0 auto;
-            background: #555;
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #result {
+            font-weight: bold;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+    <h1>Rate die Hauptstadt!</h1>
+    <p id="question">Frage wird hier angezeigt...</p>
+    <div id="answers"></div>
+    <p id="result"></p>
+    <button onclick="nextQuestion()">Nächste Frage</button>
+
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        const quiz = [
+            {
+                question: "Welche Hauptstadt liegt in Deutschland?",
+                answers: ["Wien", "Berlin", "Bern"],
+                correct: 1
+            },
+            {
+                question: "Welche Hauptstadt liegt in Frankreich?",
+                answers: ["Paris", "Madrid", "Rom"],
+                correct: 0
+            },
+            {
+                question: "Welche Hauptstadt gehört zu Australien?",
+                answers: ["Sydney", "Canberra", "Melbourne"],
+                correct: 1
+            },
+            {
+                question: "Welche Hauptstadt liegt in Kanada?",
+                answers: ["Toronto", "Vancouver", "Ottawa"],
+                correct: 2
+            },
+            {
+                question: "Welche Hauptstadt gehört zu Italien?",
+                answers: ["Neapel", "Rom", "Mailand"],
+                correct: 1
+            },
+            {
+                question: "Welche Hauptstadt liegt in Japan?",
+                answers: ["Peking", "Seoul", "Tokio"],
+                correct: 2
+            },
+            {
+                question: "Welche Hauptstadt gehört zu Russland?",
+                answers: ["Sankt Petersburg", "Moskau", "Kiew"],
+                correct: 1
+            },
+            {
+                question: "Welche Hauptstadt liegt in Brasilien?",
+                answers: ["Brasília", "Rio de Janeiro", "São Paulo"],
+                correct: 0
+            },
+            {
+                question: "Welche Hauptstadt gehört zu Indien?",
+                answers: ["Mumbai", "Neu-Delhi", "Kalkutta"],
+                correct: 1
+            },
+            {
+                question: "Welche Hauptstadt liegt in der Schweiz?",
+                answers: ["Zürich", "Bern", "Genf"],
+                correct: 1
+            }
+        ];
 
-        // Set canvas dimensions
-        canvas.width = 400;
-        canvas.height = 600;
-
-        // Car properties
-        const carWidth = 50;
-        const carHeight = 100;
-        let carX = canvas.width / 2 - carWidth / 2;
-        const carY = canvas.height - carHeight - 20;
-        const carSpeed = 5;
-
-        // Obstacles
-        const obstacles = [];
-        const obstacleWidth = 50;
-        const obstacleHeight = 100;
-        const obstacleSpeed = 4;
+        let currentQuestion = 0;
         let score = 0;
 
-        // Input keys
-        let keys = {};
+        function loadQuestion() {
+            const questionElement = document.getElementById("question");
+            const answersElement = document.getElementById("answers");
+            const resultElement = document.getElementById("result");
 
-        // Game loop
-        function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Reset previous results
+            resultElement.textContent = "";
 
-            // Draw car
-            ctx.fillStyle = 'red';
-            ctx.fillRect(carX, carY, carWidth, carHeight);
+            // Load current question
+            const question = quiz[currentQuestion];
+            questionElement.textContent = question.question;
 
-            // Move car
-            if (keys['ArrowLeft'] && carX > 0) {
-                carX -= carSpeed;
-            }
-            if (keys['ArrowRight'] && carX < canvas.width - carWidth) {
-                carX += carSpeed;
-            }
-
-            // Generate obstacles
-            if (Math.random() < 0.02) {
-                const obstacleX = Math.random() * (canvas.width - obstacleWidth);
-                obstacles.push({ x: obstacleX, y: -obstacleHeight });
-            }
-
-            // Move and draw obstacles
-            for (let i = 0; i < obstacles.length; i++) {
-                const obstacle = obstacles[i];
-                obstacle.y += obstacleSpeed;
-
-                // Check collision
-                if (
-                    carX < obstacle.x + obstacleWidth &&
-                    carX + carWidth > obstacle.x &&
-                    carY < obstacle.y + obstacleHeight &&
-                    carY + carHeight > obstacle.y
-                ) {
-                    alert(`Game Over! Dein Score: ${score}`);
-                    document.location.reload();
-                }
-
-                // Remove off-screen obstacles and update score
-                if (obstacle.y > canvas.height) {
-                    obstacles.splice(i, 1);
-                    score++;
-                }
-
-                // Draw obstacle
-                ctx.fillStyle = 'black';
-                ctx.fillRect(obstacle.x, obstacle.y, obstacleWidth, obstacleHeight);
-            }
-
-            // Draw score
-            ctx.fillStyle = 'white';
-            ctx.font = '20px Arial';
-            ctx.fillText(`Score: ${score}`, 10, 30);
-
-            requestAnimationFrame(gameLoop);
+            // Load answers
+            answersElement.innerHTML = "";
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement("button");
+                button.textContent = answer;
+                button.onclick = () => checkAnswer(index);
+                answersElement.appendChild(button);
+            });
         }
 
-        // Key events
-        window.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-        });
+        function checkAnswer(selected) {
+            const resultElement = document.getElementById("result");
+            const question = quiz[currentQuestion];
 
-        window.addEventListener('keyup', (e) => {
-            keys[e.key] = false;
-        });
+            if (selected === question.correct) {
+                resultElement.textContent = "Richtig!";
+                score++;
+            } else {
+                resultElement.textContent = `Falsch! Die richtige Antwort war: ${question.answers[question.correct]}`;
+            }
+        }
 
-        // Start game loop
-        gameLoop();
+        function nextQuestion() {
+            if (currentQuestion < quiz.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                document.getElementById("question").textContent = `Quiz beendet! Dein Ergebnis: ${score}/${quiz.length}`;
+                document.getElementById("answers").innerHTML = "";
+                document.getElementById("result").textContent = "";
+            }
+        }
+
+        // Load the first question
+        loadQuestion();
     </script>
 </body>
 </html>
